@@ -3,8 +3,13 @@ import mediapipe as mp
 import numpy as np
 
 
-PEN_ICON_PATH = 'icons/pen.png'
-RUBBER_ICON_PATH = 'icons/eraser.png'
+PEN_ICON_PATH = 'icons/pen.jpg'
+RUBBER_ICON_PATH = 'icons/eraser.jpg'
+
+
+def read_png(path):
+    icon = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+    return cv2.resize(icon, (50, 50))
 
 
 class PaintPlus:
@@ -23,11 +28,13 @@ class PaintPlus:
 
     canvas = None
 
+    pen_icon = read_png(PEN_ICON_PATH)
+    rubber_icon = read_png(RUBBER_ICON_PATH)
+
     @classmethod
     def __detect_gesture(cls, hand_landmarks, hand_index):
         """Detect gestures based on hand landmarks."""
 
-        thumb_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.THUMB_TIP]
         index_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         middle_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
         pinky_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.PINKY_TIP]
@@ -39,17 +46,14 @@ class PaintPlus:
         # rock
         if (is_finger_up(index_tip, base)
                 and is_finger_up(pinky_tip, base)
-                and not is_finger_up(thumb_tip, base)
                 and not is_finger_up(middle_tip, base)
         ):
-            print("drawing enabled")
             cls.is_drawing = True
             cls.is_erasing = False
             cls.drawing_hand_index = hand_index
 
         # peace
         elif is_finger_up(index_tip, base) and is_finger_up(middle_tip, base) and not is_finger_up(pinky_tip, base):
-            print("erasing enabled")
             cls.is_drawing = False
             cls.is_erasing = True
             cls.drawing_hand_index = hand_index
@@ -57,14 +61,12 @@ class PaintPlus:
         else:
             cls.is_drawing = False
             cls.is_erasing = False
-            print("waiting")
             if hand_index == 1:
                 cls.previous_position = None
             cls.drawing_hand_index = None
 
     @classmethod
     def __process_hands(cls, frame, draw_color):
-        # Convert the frame to RGB for Mediapipe
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         results = cls.hands.process(rgb_frame)
@@ -113,19 +115,11 @@ class PaintPlus:
             combined = cv2.addWeighted(frame, 0.5, cls.canvas, 0.5, 0)
             cv2.rectangle(combined, (0, 0), (50, 50), draw_color, -1)
 
-            pen_icon = cv2.imread(PEN_ICON_PATH, cv2.IMREAD_UNCHANGED)
-            rubber_icon = cv2.imread(RUBBER_ICON_PATH, cv2.IMREAD_UNCHANGED)
 
-            icon_size = (50, 50)
-            pen_icon = cv2.resize(pen_icon, icon_size)
-            rubber_icon = cv2.resize(rubber_icon, icon_size)
-
-            print(pen_icon)
-            print(rubber_icon)
             if cls.is_drawing:
-                combined[50:100, 0:50] = pen_icon[:, :, :-1]
+                combined[50:100, 0:50] = cls.pen_icon
             elif cls.is_erasing:
-                combined[50:100, 0:50] = rubber_icon[:, :, :-1]
+                combined[50:100, 0:50] = cls.rubber_icon
 
             cv2.imshow("Smart Paint", combined)
 
