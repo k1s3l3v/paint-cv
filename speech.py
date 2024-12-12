@@ -38,7 +38,6 @@ class SpeechRecognizer:
         while True:
             detected_color = cls.__detect_color()
             if detected_color:
-                with lock:
-                    draw_color[0] = detected_color[0]
-                    draw_color[1] = detected_color[1]
-                    draw_color[2] = detected_color[2]
+                draw_color[0] = detected_color[0]
+                draw_color[1] = detected_color[1]
+                draw_color[2] = detected_color[2]

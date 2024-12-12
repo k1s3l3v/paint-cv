@@ -33,8 +33,6 @@ class PaintPlus:
 
     @classmethod
     def __detect_gesture(cls, hand_landmarks, hand_index):
-        """Detect gestures based on hand landmarks."""
-
         index_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.INDEX_FINGER_TIP]
         middle_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
         pinky_tip = hand_landmarks.landmark[cls.mp_hands.HandLandmark.PINKY_TIP]
@@ -114,7 +112,6 @@ class PaintPlus:
 
             combined = cv2.addWeighted(frame, 0.5, cls.canvas, 0.5, 0)
             cv2.rectangle(combined, (0, 0), (50, 50), draw_color, -1)
-
 
             if cls.is_drawing:
                 combined[50:100, 0:50] = cls.pen_icon
